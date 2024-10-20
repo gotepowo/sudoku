@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <math.h>
+#include <ctype.h>
 
 /* Constantes */
 #define ERROR_FILE_MSG	"Nao foi possivel abrir o arquivo!\n"
@@ -45,7 +48,6 @@ void menu_arquivo();
  * /////////////////////////////////////////////////////////////////////////////
  */
 int main() {
-
 	// inicia o jogo
 	jogue();
 
@@ -69,6 +71,11 @@ FILE* carregue(char quadro[9][9]) {
 
 		// carregar novo sudoku
 		case 1:
+			char nomeArquivo[100];
+			printf("Informe o nome do arquivo a ser lido: ");
+			scanf("%s", nomeArquivo);
+			carregue_novo_jogo(quadro, nomeArquivo);
+			crie_arquivo_binario(quadro);
 			break;
 
 		// continuar jogo
@@ -82,7 +89,7 @@ FILE* carregue(char quadro[9][9]) {
 		default:
 			break;
 }
-
+}
 /* -----------------------------------------------------------------------------
  * CARREGAR CONTINUAR JOGO
  * Carrega um estado de jogo a partir de um arquivo binario
@@ -98,6 +105,45 @@ FILE* carregue_continue_jogo (char quadro[9][9], char *nome_arquivo) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 void carregue_novo_jogo(char quadro[9][9], char *nome_arquivo) {
+	srand(time(NULL));
+	strcat(nome_arquivo, ".txt");
+
+	FILE *arquivo = fopen(nome_arquivo, "r");
+
+	if(arquivo == NULL){
+		FILE *arquivo = fopen(nome_arquivo, "w");
+		
+		for(int i = 0; i < 9; i++){
+			for(int j = 0; j < 9; j++){
+				int randomNumber = rand() % 100;
+				if(randomNumber < 30){
+					quadro[i][j] = 0;
+				} else {
+					quadro[i][j] = (randomNumber - 30) % 9 + 1;
+				}
+			}
+		}
+
+		for(int i = 0; i < 9; i++){
+			for(int j = 0; j < 9; j++){
+				if(j == 8 && i != 8){
+					fprintf(arquivo, "%d\n", quadro[i][j]);
+				} else if(j == 8 && i == 8){
+					fprintf(arquivo, "%d", quadro[i][j]);
+				} else {
+					fprintf(arquivo, "%d ", quadro[i][j]);
+				}
+			}
+		}
+	} else {
+		for(int i = 0; i < 9; i++){
+			for(int j = 0; j < 9; j++){;
+				fscanf(arquivo, "%d", &quadro[i][j]);
+			}
+		}
+	}
+	
+	fclose(arquivo);
 	// TODO
 }
 
@@ -107,7 +153,18 @@ void carregue_novo_jogo(char quadro[9][9], char *nome_arquivo) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 FILE* crie_arquivo_binario(char quadro[9][9]) {
-	// TODO
+	int nameLength = 15;
+	char fileName[nameLength + 1];
+	
+	gen_random(fileName, nameLength);
+	strcat(fileName, ".bin");
+
+	FILE *arquivo = fopen(fileName, "w");
+	
+	fwrite(0, 4, 1, arquivo);
+	fwrite(quadro, 1, 81, arquivo);
+
+	return arquivo;
 }
 
 /* -----------------------------------------------------------------------------
@@ -213,7 +270,6 @@ void imprima(const char quadro[9][9]) {
 		if (i % 3 == 0)
 			puts("  -------------------------");
 		for (j = 0; j < 9; j++) {
-
 			if (j == 0)
 				printf("%d | ", i);
 			else if (j % 3 == 0)
