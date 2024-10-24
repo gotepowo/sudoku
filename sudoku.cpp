@@ -71,7 +71,7 @@ FILE* carregue(char quadro[9][9]) {
 
 		// carregar novo sudoku
 		case 1:
-			char nomeArquivo[100];
+			char nomeArquivo[30	];
 			printf("Informe o nome do arquivo a ser lido: ");
 			scanf("%s", nomeArquivo);
 			carregue_novo_jogo(quadro, nomeArquivo);
@@ -105,46 +105,17 @@ FILE* carregue_continue_jogo (char quadro[9][9], char *nome_arquivo) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 void carregue_novo_jogo(char quadro[9][9], char *nome_arquivo) {
-	srand(time(NULL));
 	strcat(nome_arquivo, ".txt");
 
 	FILE *arquivo = fopen(nome_arquivo, "r");
 
-	if(arquivo == NULL){
-		FILE *arquivo = fopen(nome_arquivo, "w");
-		
-		for(int i = 0; i < 9; i++){
-			for(int j = 0; j < 9; j++){
-				int randomNumber = rand() % 100;
-				if(randomNumber < 30){
-					quadro[i][j] = 0;
-				} else {
-					quadro[i][j] = (randomNumber - 30) % 9 + 1;
-				}
-			}
-		}
-
-		for(int i = 0; i < 9; i++){
-			for(int j = 0; j < 9; j++){
-				if(j == 8 && i != 8){
-					fprintf(arquivo, "%d\n", quadro[i][j]);
-				} else if(j == 8 && i == 8){
-					fprintf(arquivo, "%d", quadro[i][j]);
-				} else {
-					fprintf(arquivo, "%d ", quadro[i][j]);
-				}
-			}
-		}
-	} else {
 		for(int i = 0; i < 9; i++){
 			for(int j = 0; j < 9; j++){;
 				fscanf(arquivo, "%d", &quadro[i][j]);
 			}
 		}
-	}
 	
 	fclose(arquivo);
-	// TODO
 }
 
 /* -----------------------------------------------------------------------------
@@ -161,7 +132,8 @@ FILE* crie_arquivo_binario(char quadro[9][9]) {
 
 	FILE *arquivo = fopen(fileName, "w");
 	
-	fwrite(0, 4, 1, arquivo);
+	unsigned char value = 1;
+	fwrite(&value, 4, 1, arquivo);
 	fwrite(quadro, 1, 81, arquivo);
 
 	return arquivo;
@@ -217,6 +189,12 @@ int eh_valido(const char quadro[9][9], int x, int y, int valor) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 int eh_valido_na_coluna(const char quadro[9][9], int y, int valor) {
+	for(int i = 0; i < 9; i++){
+		if(quadro[i][y] == valor){
+			return 0;
+		}
+	}
+	return 1;
 	// TODO
 }
 
@@ -226,6 +204,12 @@ int eh_valido_na_coluna(const char quadro[9][9], int y, int valor) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 int eh_valido_na_linha(const char quadro[9][9], int x, int valor) {
+	for(int i = 0; i < 9; i++){
+		if(quadro[x][i] == valor){
+			return 0;
+		}
+	}
+	return 1;
 	// TODO
 }
 
@@ -235,6 +219,99 @@ int eh_valido_na_linha(const char quadro[9][9], int x, int valor) {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 int eh_valido_no_quadrante3x3(const char quadro[9][9], int x, int y, int valor) {
+	int quadranteAtual = determine_quadrante(x, y);
+	switch(quadranteAtual){
+	case 1:
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 2:
+		for(int i = 0; i < 3; i++){
+			for(int j = 3; j < 6; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 3:
+		for(int i = 0; i < 3; i++){
+			for(int j = 6; j < 9; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 4:
+		for(int i = 3; i < 6; i++){
+			for(int j = 0; j < 3; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 5:
+		for(int i = 3; i < 6; i++){
+			for(int j = 3; j < 6; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 6:
+		for(int i = 3; i < 6; i++){
+			for(int j = 6; j < 9; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 7:
+		for(int i = 6; i < 9; i++){
+			for(int j = 0; j < 3; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 8:
+		for(int i = 6; i < 9; i++){
+			for(int j = 3; j < 6; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	case 9:
+		for(int i = 6; i < 9; i++){
+			for(int j = 6; j < 9; j++){
+				if(quadro[i][j] == valor){
+					return 0;
+				}
+			}
+		}
+		return 1;
+		break;
+	}
 	// TODO
 }
 
@@ -335,7 +412,7 @@ void jogue() {
 
 			if (eh_valido(quadro, x, y, valor)) {
 				quadro[x][y] = valor;
-				salve_jogada_bin(fb, quadro);
+				// salve_jogada_bin(fb, quadro);
 			}
 			else
 				puts("Valor ou posicao incorreta! Tente novamente!");
